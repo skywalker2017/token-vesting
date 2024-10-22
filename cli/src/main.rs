@@ -12,7 +12,7 @@ use solana_sdk::{
     self, commitment_config::CommitmentConfig, signature::Keypair, signature::Signer,
     transaction::Transaction,
 };
-use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
+use spl_associated_token_account::{instruction::create_associated_token_account, get_associated_token_address};
 use spl_token;
 use std::convert::TryInto;
 use token_vesting::{
@@ -70,6 +70,7 @@ fn command_create_svc(
             &source_token_owner.pubkey(),
             &vesting_pubkey,
             &mint_address,
+            &spl_token::id(),
         ),
         create(
             &program_id,
@@ -88,7 +89,7 @@ fn command_create_svc(
 
     let mut transaction = Transaction::new_with_payer(&instructions, Some(&payer.pubkey()));
 
-    let recent_blockhash = rpc_client.get_recent_blockhash().unwrap().0;
+    let recent_blockhash = rpc_client.get_latest_blockhash().unwrap();
     transaction.sign(&[&payer], recent_blockhash);
 
     msg!(
@@ -141,7 +142,7 @@ fn command_unlock_svc(
 
     let mut transaction = Transaction::new_with_payer(&[unlock_instruction], Some(&payer.pubkey()));
 
-    let recent_blockhash = rpc_client.get_recent_blockhash().unwrap().0;
+    let recent_blockhash = rpc_client.get_latest_blockhash().unwrap();
     transaction.sign(&[&payer], recent_blockhash);
 
     rpc_client.send_transaction(&transaction).unwrap();
@@ -184,7 +185,7 @@ fn command_change_destination(
 
     let mut transaction = Transaction::new_with_payer(&[unlock_instruction], Some(&payer.pubkey()));
 
-    let recent_blockhash = rpc_client.get_recent_blockhash().unwrap().0;
+    let recent_blockhash = rpc_client.get_latest_blockhash().unwrap();
     transaction.sign(
         &[&payer, &destination_token_account_owner],
         recent_blockhash,
